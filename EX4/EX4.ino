@@ -21,7 +21,7 @@ void setup()
 	// D-register pin 3 to output = arduino nano pin D3
 	//DDRD = DDRD | 0b00001000;
 	DDRB = (DDRB | 0b00100000);
-	
+
 	pinMode(5, OUTPUT);
 
 	//digitalWrite(5, HIGH);
@@ -31,7 +31,7 @@ void setup()
 
 void loop()
 {
-  
+
 	blingPattern(sos, sizeof(sos) / sizeof(int), sosTime, sosIndex, sosLedHigh);
 
 }
