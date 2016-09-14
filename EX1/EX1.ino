@@ -22,10 +22,6 @@ void setup()
 	//DDRD = DDRD | 0b00001000;
 	DDRB = (DDRB | 0b00100000);
 	
-	pinMode(5, OUTPUT);
-
-	//digitalWrite(5, HIGH);
-
 }
 
 
