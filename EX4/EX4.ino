@@ -1,87 +1,86 @@
-//https://upload.wikimedia.org/wikipedia/commons/b/b5/International_Morse_Code.svg
-#define dot 100
-#define dash dot * 3
-#define space dot
-#define spaceLetter dot * 3
-#define spaceWord dot * 7
 
-unsigned long sosTime = 0;
-bool sosLedHigh = false;
-unsigned int sosIndex = 0;
+#define DIFFERENTCHAR 15
+#define D 500 //Char display time
+//													0			1			2			3			4			5			6			7			8			9			.			blank
+const uint8_t sevenNumberBits[DIFFERENTCHAR] = { 0b00111111, 0b00000110, 0b01011011, 0b01001111, 0b01100110, 0b01101101, 0b01111101, 0b01000111, 0b01111111, 0b01101111, 0b10000000, 0b00000000,
+0b01110111, 0b01111001, 0b01110001 };
+//													A			E			F
+const char sevenNumberChars[DIFFERENTCHAR] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', ' ', 'A', 'E', 'F' };
 
-
-
-unsigned int sos[] = { dot, dot, dot, dash, dash, dash, dot, dot, dot };
-
-void blingPattern(unsigned int pattern[], unsigned int length, unsigned long &timeOld, unsigned int &patternIndex);
-void ledControl(uint8_t status);
-
+char wordChar[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', '8', '6', '4', '2', '0', ' ' };
+unsigned int wordDelay[] = { D,   D,   D,   D,   D,   D,   D,   D,   D,   D,   D,   D,   D,   D,   D,   D,   D * 2 };
+unsigned long wordTimeOld = 0;
+unsigned int wordIndex = 0;
+bool wordStart = true;
 void setup()
 {
-	// D-register pin 3 to output = arduino nano pin D3
-	//DDRD = DDRD | 0b00001000;
-	DDRB = (DDRB | 0b00100000);
-
-	pinMode(5, OUTPUT);
-
-	//digitalWrite(5, HIGH);
+	DDRD = 255;
 
 }
+
 
 
 void loop()
 {
+	//sevenSeg('0', false);
+	displayCharacters(wordChar, wordDelay, sizeof(wordChar), wordTimeOld, wordIndex, wordStart);
 
-	blingPattern(sos, sizeof(sos) / sizeof(int), sosTime, sosIndex, sosLedHigh);
 
 }
 
-
-void ledControl(uint8_t status)
+int sevenSeg(char character, bool decimal)
 {
-	if (status == HIGH)
+	for (uint8_t i = 0; i < DIFFERENTCHAR; i++)
 	{
-		//Lue rekisterin bittien tilat ykkösillä AND-operattorilla. 0 nollaa halutun bitin. OR-operaattorilla kijoitettaan haluttu tila nollattuun bittiin.
-		//PORTD = (PORTD & 0b11110111) | 0b1000;
-		PORTB = (PORTB & 0b11011111) | 0b100000;
-	}
-	else if (status == LOW)
-	{
-		//PORTD = PORTD & 0b11110111;
-		PORTB = PORTB & 0b11011111;
-	}
-}
-
-void blingPattern(unsigned int pattern[], unsigned int length, unsigned long &timeOld, unsigned int &patternIndex, bool &ledHigh)
-{
-	if (patternIndex < length)
-	{
-		if (ledHigh == true)
+		if (sevenNumberChars[i] == character)
 		{
-			if (millis() - timeOld > pattern[patternIndex])
+			if (decimal == true)
 			{
-				ledControl(LOW);
-				ledHigh = false;
-				patternIndex++;
-				timeOld = millis();
+				if (character == '.')
+				{
+					PORTD = sevenNumberBits[i];
+				}
+				else
+				{
+					PORTD = sevenNumberBits[i] + 0b10000000;
+				}
+				return EXIT_SUCCESS;
 			}
+			else
+			{
+				PORTD = sevenNumberBits[i];
+				return EXIT_SUCCESS;
+			}
+
+		}
+	}
+	return EXIT_FAILURE;
+}
+
+void displayCharacters(char word[], unsigned int time[], unsigned int lenght, unsigned long &timeOld, unsigned int &patternIndex, bool &start)
+{
+	if (patternIndex < lenght)
+	{
+		if (patternIndex == 0 && start == true)
+		{
+			sevenSeg(word[patternIndex], false);
+			start = false;
+			timeOld = millis();
 		}
 		else
 		{
-			if (millis() - timeOld > space)
+			if (millis() - timeOld > time[patternIndex])
 			{
-				ledControl(HIGH);
-				ledHigh = true;
+				patternIndex++;
+				sevenSeg(word[patternIndex], false);
 				timeOld = millis();
 			}
 		}
 	}
 	else
 	{
-		if (millis() - timeOld > spaceWord)
-		{
-			patternIndex = 0;
-			timeOld = millis();
-		}
+		patternIndex = 0;
+		start = true;
 	}
+
 }
