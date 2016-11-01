@@ -75,9 +75,9 @@ void setup()
 
 void loop()
 {
-	aPlusB();
+	//aPlusB();
 
-	//setValue();
+	setValue(42);
 	//printTo50();
 }
 
@@ -224,16 +224,16 @@ void aPlusB()
 	waitInput();
 }
 
-int setValue()
+int setValue(int oldValue)
 {
-	int value = 0;
+	int value = oldValue;
 	while (true)
 	{
 		nkn.clear();
 		nkn.setCursor(0, 0);
 		char line[] = { "Set value=" };
 		nkn.print(line);
-		nkn.setCursor(sizeof(line) + 1, 0);
+		nkn.setCursor(sizeof(line) - 1, 0);
 		nkn.print(value);
 
 		waitInput();
@@ -257,6 +257,15 @@ int setValue()
 			break;
 		default:
 			break;
+		}
+
+		if (value < 0)
+		{
+			value = 0;
+		}
+		else if (value > 100)
+		{
+			value = 100;
 		}
 	}	
 }
